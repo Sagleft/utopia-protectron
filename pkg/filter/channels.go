@@ -1,5 +1,9 @@
 package filter
 
+import "regexp"
+
+var matchChannelIDRegExp = regexp.MustCompile(`\b[0-9a-fA-F]{32}\b`)
+
 type channelsFilter struct{}
 
 func NewChannelsFilter() Filter {
@@ -7,6 +11,5 @@ func NewChannelsFilter() Filter {
 }
 
 func (f channelsFilter) Use(message string) bool {
-	return len(message) == channelIDLength &&
-		isHexadecimal(message)
+	return matchChannelIDRegExp.MatchString(message)
 }

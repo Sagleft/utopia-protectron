@@ -1,7 +1,5 @@
 package filter
 
-const channelIDLength = 32
-
 type internalLinksFilter struct{}
 
 type externalLinksFilter struct{}
