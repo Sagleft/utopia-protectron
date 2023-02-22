@@ -11,8 +11,7 @@ func NewInternalLinksFilter() Filter {
 }
 
 func (f internalLinksFilter) Use(message string) bool {
-	return len(message) == channelIDLength &&
-		isHexadecimal(message)
+	return isIdyllURL(message)
 }
 
 func NewExternalLinksFilter() Filter {
