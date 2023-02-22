@@ -2,13 +2,23 @@ package filter
 
 const channelIDLength = 32
 
-type linksFilter struct{}
+type internalLinksFilter struct{}
 
-func NewLinksFilter() Filter {
-	return linksFilter{}
+type externalLinksFilter struct{}
+
+func NewInternalLinksFilter() Filter {
+	return internalLinksFilter{}
 }
 
-func (f linksFilter) Use(message string) bool {
+func (f internalLinksFilter) Use(message string) bool {
 	return len(message) == channelIDLength &&
 		isHexadecimal(message)
+}
+
+func NewExternalLinksFilter() Filter {
+	return externalLinksFilter{}
+}
+
+func (f externalLinksFilter) Use(message string) bool {
+	return isContainsURL(message)
 }
