@@ -29,9 +29,7 @@ func NewUtopiaBot(cfg UBotConfig, db memory.Memory) (Bot, error) {
 	var err error
 	b.handler, err = uchatbot.NewChatBot(uchatbot.ChatBotData{
 		Config: cfg.UtopiaConfig,
-		Chats: []uchatbot.Chat{
-			{ID: "TODO"}, // TODO: load from func args
-		},
+		Chats:  []uchatbot.Chat{},
 		Callbacks: uchatbot.ChatBotCallbacks{
 			OnContactMessage:        b.onContactMessage,
 			OnChannelMessage:        b.onChannelMessage,

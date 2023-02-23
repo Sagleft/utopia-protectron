@@ -27,4 +27,6 @@ func main() {
 	if _, err := bot.NewUtopiaBot(cfg, db); err != nil {
 		log.Fatalln(err)
 	}
+
+	swissknife.RunInBackground()
 }
