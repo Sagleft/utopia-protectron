@@ -25,7 +25,10 @@ type UBotConfig struct {
 }
 
 func NewUtopiaBot(cfg UBotConfig, db memory.Memory) (Bot, error) {
-	b := &uBot{dbConn: db}
+	b := &uBot{
+		dbConn: db,
+		cfg:    cfg,
+	}
 
 	var err error
 	b.handler, err = uchatbot.NewChatBot(uchatbot.ChatBotData{
@@ -77,7 +80,13 @@ func (b *uBot) onChannelMessage(message structs.WsChannelMessage) {
 }
 
 func (b *uBot) onPrivateChannelMessage(message structs.WsChannelMessage) {
-	// TODO
+	b.handler.SendChannelPrivateMessage(
+		message.ChannelID,
+		message.PubkeyHash,
+		"Hi. Interested in this bot? "+
+			"Check out the other sample projects:\n"+
+			"https://udocs.gitbook.io/utopia-api/",
+	)
 }
 
 func (b *uBot) fixAccountName(accountName string) error {
