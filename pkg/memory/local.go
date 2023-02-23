@@ -58,3 +58,11 @@ func (db *localDB) isEntryExists(entryPointer interface{}, typePointer interface
 	}
 	return true, nil
 }
+
+func (db *localDB) IsUserExists(u User) (bool, error) {
+	return db.isEntryExists(&u, &User{})
+}
+
+func (db *localDB) SaveUser(u User) error {
+	return db.conn.Save(&u).Error
+}

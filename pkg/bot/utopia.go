@@ -49,7 +49,18 @@ func NewUtopiaBot(cfg UBotConfig, db memory.Memory) (Bot, error) {
 }
 
 func (b *uBot) onWelcomeMessage(userPubkey string) string {
-	// TODO
+	isUserSaved, err := b.dbConn.IsUserExists(memory.User{Pubkey: userPubkey})
+	if err != nil {
+		b.onError(fmt.Errorf("check user exists: %w", err))
+		return "Hi. System error, failed to check your account"
+	}
+	if !isUserSaved {
+		if err := b.dbConn.SaveUser(memory.User{Pubkey: userPubkey}); err != nil {
+			b.onError(fmt.Errorf("create user: %w", err))
+			return "Hi. System error, failed to create your account"
+		}
+	}
+
 	return b.cfg.WelcomeMessage
 }
 
