@@ -15,6 +15,7 @@ const defaultAccountName = "account.db"
 type uBot struct {
 	handler *uchatbot.ChatBot
 	dbConn  memory.Memory
+	cfg     UBotConfig
 }
 
 type UBotConfig struct {
@@ -35,9 +36,7 @@ func NewUtopiaBot(cfg UBotConfig, db memory.Memory) (Bot, error) {
 			OnChannelMessage:        b.onChannelMessage,
 			OnPrivateChannelMessage: b.onPrivateChannelMessage,
 
-			WelcomeMessage: func(userPubkey string) string {
-				return cfg.WelcomeMessage
-			},
+			WelcomeMessage: b.onWelcomeMessage,
 		},
 		UseErrorCallback: true,
 		ErrorCallback:    b.onError,
@@ -47,6 +46,11 @@ func NewUtopiaBot(cfg UBotConfig, db memory.Memory) (Bot, error) {
 	}
 
 	return b, b.fixAccountName(cfg.AccountName)
+}
+
+func (b *uBot) onWelcomeMessage(userPubkey string) string {
+	// TODO
+	return b.cfg.WelcomeMessage
 }
 
 func (b *uBot) onError(err error) {
