@@ -11,3 +11,11 @@ type User struct {
 
 	Pubkey string
 }
+
+type Channel struct {
+	gorm.Model
+
+	ID          string
+	OwnerPubkey string
+	Filters     map[string]bool // filter tag -> enabled
+}

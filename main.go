@@ -2,6 +2,7 @@ package main
 
 import (
 	"bot/pkg/bot"
+	"bot/pkg/memory"
 	"log"
 
 	swissknife "github.com/Sagleft/swiss-knife"
@@ -9,6 +10,7 @@ import (
 
 const (
 	configFilePath = "config.json"
+	dbFilename     = "memory.db"
 )
 
 func main() {
@@ -17,8 +19,12 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	_, err := bot.NewUtopiaBot(cfg)
+	db, err := memory.NewLocalDB(dbFilename)
 	if err != nil {
+		log.Fatalln(err)
+	}
+
+	if _, err := bot.NewUtopiaBot(cfg, db); err != nil {
 		log.Fatalln(err)
 	}
 }

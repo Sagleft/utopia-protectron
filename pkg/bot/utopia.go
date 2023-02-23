@@ -1,6 +1,8 @@
 package bot
 
 import (
+	"bot/pkg/memory"
+
 	"github.com/Sagleft/uchatbot-engine"
 	utopiago "github.com/Sagleft/utopialib-go/v2"
 	"github.com/Sagleft/utopialib-go/v2/pkg/structs"
@@ -9,6 +11,7 @@ import (
 
 type uBot struct {
 	handler *uchatbot.ChatBot
+	dbConn  memory.Memory
 }
 
 type UBotConfig struct {
@@ -16,8 +19,8 @@ type UBotConfig struct {
 	UtopiaConfig   utopiago.Config `json:"utopia"`
 }
 
-func NewUtopiaBot(cfg UBotConfig) (Bot, error) {
-	b := &uBot{}
+func NewUtopiaBot(cfg UBotConfig, db memory.Memory) (Bot, error) {
+	b := &uBot{dbConn: db}
 
 	var err error
 	b.handler, err = uchatbot.NewChatBot(uchatbot.ChatBotData{
