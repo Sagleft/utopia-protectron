@@ -28,5 +28,6 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	log.Println("bot started")
 	swissknife.RunInBackground()
 }
