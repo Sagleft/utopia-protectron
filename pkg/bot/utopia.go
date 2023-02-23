@@ -11,12 +11,12 @@ type uBot struct {
 	handler *uchatbot.ChatBot
 }
 
-type uBotConfig struct {
+type UBotConfig struct {
 	WelcomeMessage string          `json:"welcomeMessage"`
 	UtopiaConfig   utopiago.Config `json:"utopia"`
 }
 
-func NewUtopiaBot(cfg uBotConfig) (Bot, error) {
+func NewUtopiaBot(cfg UBotConfig) (Bot, error) {
 	b := &uBot{}
 
 	var err error

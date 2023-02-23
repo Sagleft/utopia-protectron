@@ -3,14 +3,16 @@ module bot
 go 1.18
 
 require (
+	github.com/Sagleft/swiss-knife v1.3.0
 	github.com/Sagleft/uchatbot-engine v1.6.0
 	github.com/Sagleft/utopialib-go/v2 v2.4.0
 	github.com/fatih/color v1.14.1
 	github.com/stretchr/testify v1.8.1
 )
 
+require github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be // indirect
+
 require (
-	github.com/Sagleft/swiss-knife v1.0.8 // indirect
 	github.com/beefsack/go-rate v0.0.0-20220214233405-116f4ca011a0 // indirect
 	github.com/ctengiz/evtwebsocket v0.0.0-20180717104640-fc3583982591 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

@@ -4,11 +4,20 @@ import (
 	"bot/pkg/bot"
 	"log"
 
-	"github.com/Sagleft/utopialib-go/v2/internal/utopia"
+	swissknife "github.com/Sagleft/swiss-knife"
+)
+
+const (
+	configFilePath = "config.json"
 )
 
 func main() {
-	_, err := bot.NewUtopiaBot(utopia.Config{})
+	var cfg bot.UBotConfig
+	if err := swissknife.ParseStructFromJSONFile(configFilePath, &cfg); err != nil {
+		log.Fatalln(err)
+	}
+
+	_, err := bot.NewUtopiaBot(cfg)
 	if err != nil {
 		log.Fatalln(err)
 	}
