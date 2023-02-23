@@ -16,3 +16,4 @@ bot
 # vendor/
 
 memory.db
+config.json
