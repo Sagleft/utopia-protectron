@@ -1,5 +1,5 @@
 {
-    "welcomeMessage": "[eva] Hi! Add me to your chats where I need to delete spam and give me permission to delete messages and ban users.\n\nAfter that you will be able to manage the anti-spam filters. As soon as I find that you've added me to a new channel, I'll let you know. This may not happen instantly",
+    "welcomeMessage": "[eva] Hi! Add me to your chats as moderator where I need to delete spam and give me permission to delete messages and ban users.\n\nSend me your channel ID after that.",
     "accountName": "Protectron",
     "utopia": {
         "host": "127.0.0.1",

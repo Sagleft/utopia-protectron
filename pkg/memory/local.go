@@ -66,3 +66,39 @@ func (db *localDB) IsUserExists(u User) (bool, error) {
 func (db *localDB) SaveUser(u User) error {
 	return db.conn.Save(&u).Error
 }
+
+func (db *localDB) IsChannelExists(c Channel) (bool, error) {
+	return db.isEntryExists(&c, &Channel{})
+}
+
+func (db *localDB) SaveChannel(c Channel) error {
+	return db.conn.Save(&c).Error
+}
+
+func (db *localDB) GetChannel(channelID string) (Channel, error) {
+	c := Channel{}
+	result := db.conn.Where(&Channel{
+		ID: channelID,
+	}).First(&c)
+	return c, result.Error
+}
+
+func (db *localDB) ToogleUserCommandMode(enabled bool) error {
+	// TODO
+	return nil
+}
+
+func (db *localDB) SetUserPayload(u User, payload string) error {
+	return db.conn.Model(&u).Where("Pubkey", u.Pubkey).
+		Updates(User{
+			Payload: payload,
+		}).Error
+}
+
+func (db *localDB) GetUser(pubkey string) (User, error) {
+	u := User{}
+	result := db.conn.Where(&User{
+		Pubkey: pubkey,
+	}).First(&u)
+	return u, result.Error
+}

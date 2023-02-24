@@ -9,7 +9,9 @@ var models = []interface{}{
 type User struct {
 	gorm.Model
 
-	Pubkey string
+	Pubkey           string `gorm:"primaryKey"`
+	EnterCommandMode bool   `gorm:"default:false;"`
+	Payload          string
 }
 
 type Channel struct {

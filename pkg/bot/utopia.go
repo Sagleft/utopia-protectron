@@ -10,7 +10,10 @@ import (
 	"github.com/fatih/color"
 )
 
-const defaultAccountName = "account.db"
+const (
+	channelIDLength    = 32
+	defaultAccountName = "account.db"
+)
 
 type uBot struct {
 	handler *uchatbot.ChatBot
@@ -72,7 +75,46 @@ func (b *uBot) onError(err error) {
 }
 
 func (b *uBot) onContactMessage(message structs.InstantMessage) {
-	// TODO
+	if len(message.Text) == channelIDLength { // TODO: check for hex
+		channelID := message.Text
+
+		// check channel exists
+		isChannelSaved, err := b.dbConn.IsChannelExists(memory.Channel{
+			ID: channelID,
+		})
+		if err != nil {
+			// TODO
+		}
+		if isChannelSaved {
+			// check ownership
+			channelData, err := b.dbConn.GetChannel(channelID)
+			if err != nil {
+				// TODO
+			}
+			if channelData.OwnerPubkey != message.Pubkey {
+				b.handler.SendContactMessage(
+					message.Pubkey,
+					"You have to be the owner of the channel",
+				)
+				return
+			}
+			b.handler.SendContactMessage(
+				message.Pubkey,
+				"TODO",
+			)
+			// TODO: go to command-enter mode
+			return
+
+		} else {
+			if err := b.dbConn.SaveChannel(memory.Channel{
+				ID:          channelID,
+				OwnerPubkey: "", // TODO: get channel owner pubkey
+			}); err != nil {
+				// TODO
+			}
+		}
+
+	}
 }
 
 func (b *uBot) onChannelMessage(message structs.WsChannelMessage) {
