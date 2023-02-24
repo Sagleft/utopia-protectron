@@ -83,13 +83,15 @@ func (db *localDB) GetChannel(channelID string) (Channel, error) {
 	return c, result.Error
 }
 
-func (db *localDB) ToogleUserCommandMode(enabled bool) error {
-	// TODO
-	return nil
+func (db *localDB) ToogleUserCommandMode(pubkey string, enabled bool) error {
+	return db.conn.Model(&User{}).Where("Pubkey", pubkey).
+		Updates(User{
+			EnterCommandMode: enabled,
+		}).Error
 }
 
 func (db *localDB) SetUserPayload(u User, payload string) error {
-	return db.conn.Model(&u).Where("Pubkey", u.Pubkey).
+	return db.conn.Model(&User{}).Where("Pubkey", u.Pubkey).
 		Updates(User{
 			Payload: payload,
 		}).Error

@@ -102,6 +102,7 @@ func (b *uBot) onContactMessage(message structs.InstantMessage) {
 		err = b.handleUserTextRequest(u, message.Text)
 	}
 	if err != nil {
+		// TODO: notify user
 		b.onError(fmt.Errorf("handle user request: %w", err))
 	}
 
@@ -168,6 +169,10 @@ func (b *uBot) handleUserTextRequest(u memory.User, channelID string) error {
 			"you must be the owner of channel %q to control its filters",
 			channelData.Title,
 		)
+	}
+
+	if err := b.dbConn.ToogleUserCommandMode(u.Pubkey, true); err != nil {
+		return fmt.Errorf("toogle user command mode: %w", err)
 	}
 
 	return nil
