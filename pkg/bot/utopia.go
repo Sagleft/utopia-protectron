@@ -90,7 +90,8 @@ func (b *uBot) onContactMessage(message structs.InstantMessage) {
 	}
 
 	// get user data
-	u, err := b.dbConn.GetUser(message.Pubkey)
+	userPubkey := message.Pubkey
+	u, err := b.dbConn.GetUser(userPubkey)
 	if err != nil {
 		b.onError(fmt.Errorf("get user data: %w", err))
 		return
@@ -102,50 +103,25 @@ func (b *uBot) onContactMessage(message structs.InstantMessage) {
 		err = b.handleUserTextRequest(u, message.Text)
 	}
 	if err != nil {
-		// TODO: notify user
-		b.onError(fmt.Errorf("handle user request: %w", err))
-	}
-
-	/* { // TODO: check for hex
-		channelID := message.Text
-
-		// check channel exists
-		isChannelSaved, err := b.dbConn.IsChannelExists(memory.Channel{
-			ID: channelID,
-		})
-		if err != nil {
-			// TODO
-		}
-		if isChannelSaved {
-			// check ownership
-			channelData, err := b.dbConn.GetChannel(channelID)
-			if err != nil {
-				// TODO
-			}
-			if channelData.OwnerPubkey != message.Pubkey {
-				b.handler.SendContactMessage(
-					message.Pubkey,
-					"You have to be the owner of the channel",
-				)
+		if err == errorChannelIDMustBeSent {
+			if _, messageErr := b.handler.GetClient().SendInstantMessage(
+				userPubkey,
+				err.Error(),
+			); messageErr != nil {
+				b.onError(fmt.Errorf("send to user errorChannelIDMustBeSent: %w", err))
 				return
 			}
-			b.handler.SendContactMessage(
-				message.Pubkey,
-				"TODO",
-			)
-			// TODO: go to command-enter mode
-			return
-
-		} else {
-			if err := b.dbConn.SaveChannel(memory.Channel{
-				ID:          channelID,
-				OwnerPubkey: "", // TODO: get channel owner pubkey
-			}); err != nil {
-				// TODO
-			}
 		}
 
-	}*/
+		b.onError(fmt.Errorf("handle user request: %w", err))
+		if _, messageErr := b.handler.GetClient().SendInstantMessage(
+			userPubkey,
+			errorNotifyDevelopers.Error(),
+		); messageErr != nil {
+			b.onError(fmt.Errorf("send handle response error to user: %w", err))
+			return
+		}
+	}
 }
 
 func (b *uBot) handleUserCommand(u memory.User, msgText string) error {
