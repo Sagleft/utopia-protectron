@@ -175,6 +175,10 @@ func (b *uBot) handleUserTextRequest(u memory.User, channelID string) error {
 		return fmt.Errorf("toogle user command mode: %w", err)
 	}
 
+	msg := "" // TODO
+	if _, err := b.handler.GetClient().SendInstantMessage(u.Pubkey, msg); err != nil {
+		return fmt.Errorf("send user commands: %w", err)
+	}
 	return nil
 }
 
