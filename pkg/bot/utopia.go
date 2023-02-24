@@ -171,13 +171,44 @@ func (b *uBot) handleUserTextRequest(u memory.User, channelID string) error {
 		)
 	}
 
-	if err := b.dbConn.ToogleUserCommandMode(u.Pubkey, true); err != nil {
-		return fmt.Errorf("toogle user command mode: %w", err)
+	// check channel saved
+	isChannelSaved, err := b.dbConn.IsChannelExists(memory.Channel{ID: channelID})
+	if err != nil {
+		return fmt.Errorf("check channel exists: %w", err)
+	}
+	if !isChannelSaved {
+		// save channel
+		if err := b.dbConn.SaveChannel(memory.Channel{
+			ID:          channelID,
+			OwnerPubkey: channelData.Owner,
+			Filters:     make(memory.UserFilters),
+		}); err != nil {
+			return fmt.Errorf("save channel: %w", err)
+		}
 	}
 
-	msg := "" // TODO
+	// get channel config from db
+	channelBotConfig, err := b.dbConn.GetChannel(channelID)
+	if err != nil {
+		return fmt.Errorf("get bot channel config: %w", err)
+	}
+
+	// check owner
+	if channelBotConfig.OwnerPubkey != channelData.Owner {
+		// channel owner was changed: save actual owner
+		if err := b.dbConn.SetChannelOwner(channelID, channelData.Owner); err != nil {
+			return fmt.Errorf("set channel owner: %w", err)
+		}
+	}
+
+	msg := "Send me the number of the selected option:" +
+		getCommandsMessage(channelBotConfig.Filters)
 	if _, err := b.handler.GetClient().SendInstantMessage(u.Pubkey, msg); err != nil {
 		return fmt.Errorf("send user commands: %w", err)
+	}
+
+	if err := b.dbConn.ToogleUserCommandMode(u.Pubkey, true); err != nil {
+		return fmt.Errorf("toogle user command mode: %w", err)
 	}
 	return nil
 }

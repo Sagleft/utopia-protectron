@@ -2,13 +2,25 @@ package filter
 
 type Filter interface {
 	Use(message string) (isDetected bool)
+	GetTag() string
+	GetName() string
 }
 
-func GetFilters() map[string]Filter {
-	return map[string]Filter{
-		"nil": NewInternalLinksFilter(),
-		"nel": NewExternalLinksFilter(),
-		"np":  NewNoPubkeyFilter(),
-		"c":   NewChannelsFilter(),
+func GetFiltersArray() []Filter {
+	return []Filter{
+		NewInternalLinksFilter(),
+		NewExternalLinksFilter(),
+		NewNoPubkeyFilter(),
+		NewChannelsFilter(),
 	}
+}
+
+func GetFiltersMap() map[string]Filter {
+	m := map[string]Filter{}
+	filters := GetFiltersArray()
+
+	for _, f := range filters {
+		m[f.GetTag()] = f
+	}
+	return m
 }

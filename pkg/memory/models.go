@@ -14,10 +14,12 @@ type User struct {
 	Payload          string
 }
 
+type UserFilters map[string]bool
+
 type Channel struct {
 	gorm.Model
 
 	ID          string
 	OwnerPubkey string
-	Filters     map[string]bool // filter tag -> enabled
+	Filters     UserFilters // filter tag -> enabled
 }

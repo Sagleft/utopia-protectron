@@ -1,11 +1,13 @@
 package filter
 
-type internalLinksFilter struct{}
+type internalLinksFilter struct{ baseFilter }
 
-type externalLinksFilter struct{}
+type externalLinksFilter struct{ baseFilter }
 
 func NewInternalLinksFilter() Filter {
-	return internalLinksFilter{}
+	return internalLinksFilter{
+		baseFilter: baseFilter{tag: "nil", name: "no-internal-links"},
+	}
 }
 
 func (f internalLinksFilter) Use(message string) bool {
@@ -13,7 +15,9 @@ func (f internalLinksFilter) Use(message string) bool {
 }
 
 func NewExternalLinksFilter() Filter {
-	return externalLinksFilter{}
+	return externalLinksFilter{
+		baseFilter: baseFilter{tag: "nel", name: "no-external-links"},
+	}
 }
 
 func (f externalLinksFilter) Use(message string) bool {

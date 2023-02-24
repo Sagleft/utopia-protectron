@@ -104,3 +104,10 @@ func (db *localDB) GetUser(pubkey string) (User, error) {
 	}).First(&u)
 	return u, result.Error
 }
+
+func (db *localDB) SetChannelOwner(channelID, ownerPubkey string) error {
+	return db.conn.Model(&Channel{}).Where("OwnerPubkey", ownerPubkey).
+		Updates(Channel{
+			OwnerPubkey: ownerPubkey,
+		}).Error
+}
