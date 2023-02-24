@@ -3,7 +3,7 @@ package memory
 import "gorm.io/gorm"
 
 var models = []interface{}{
-	&User{},
+	&User{}, &Channel{},
 }
 
 type User struct {
@@ -22,4 +22,12 @@ type Channel struct {
 	ID          string
 	OwnerPubkey string
 	Filters     UserFilters // filter tag -> enabled
+}
+
+func (User) TableName() string {
+	return "users"
+}
+
+func (Channel) TableName() string {
+	return "channels"
 }
