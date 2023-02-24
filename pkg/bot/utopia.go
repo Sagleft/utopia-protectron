@@ -23,9 +23,10 @@ type uBot struct {
 }
 
 type UBotConfig struct {
-	WelcomeMessage string          `json:"welcomeMessage"`
-	AccountName    string          `json:"accountName"`
-	UtopiaConfig   utopiago.Config `json:"utopia"`
+	WelcomeMessage        string          `json:"welcomeMessage"`
+	AccountName           string          `json:"accountName"`
+	AutoChangeAccountName bool            `json:"autoChangeAccountName"`
+	UtopiaConfig          utopiago.Config `json:"utopia"`
 }
 
 func NewUtopiaBot(cfg UBotConfig, db memory.Memory) (Bot, error) {
@@ -52,7 +53,11 @@ func NewUtopiaBot(cfg UBotConfig, db memory.Memory) (Bot, error) {
 		return nil, err
 	}
 
-	return b, b.fixAccountName(cfg.AccountName)
+	if cfg.AutoChangeAccountName {
+		return b, b.fixAccountName(cfg.AccountName)
+	}
+
+	return b, nil
 }
 
 func (b *uBot) onWelcomeMessage(userPubkey string) string {
@@ -97,13 +102,14 @@ func (b *uBot) onContactMessage(message structs.InstantMessage) {
 		return
 	}
 
+	var maskError bool
 	if u.EnterCommandMode {
 		err = b.handleUserCommand(u, message.Text)
 	} else {
-		err = b.handleUserTextRequest(u, message.Text)
+		maskError, err = b.handleUserTextRequest(u, message.Text)
 	}
 	if err != nil {
-		if err == errorChannelIDMustBeSent {
+		if !maskError {
 			if _, messageErr := b.handler.GetClient().SendInstantMessage(
 				userPubkey,
 				err.Error(),
@@ -111,6 +117,7 @@ func (b *uBot) onContactMessage(message structs.InstantMessage) {
 				b.onError(fmt.Errorf("send to user errorChannelIDMustBeSent: %w", err))
 				return
 			}
+			return
 		}
 
 		b.onError(fmt.Errorf("handle user request: %w", err))
@@ -129,19 +136,22 @@ func (b *uBot) handleUserCommand(u memory.User, msgText string) error {
 	return nil
 }
 
-func (b *uBot) handleUserTextRequest(u memory.User, channelID string) error {
+func (b *uBot) handleUserTextRequest(
+	u memory.User,
+	channelID string,
+) (maskError bool, handleErr error) {
 	if !filter.NewChannelsFilter().Use(channelID) {
-		return errorChannelIDMustBeSent
+		return false, errorChannelIDMustBeSent
 	}
 
 	// check channel ownership
 	channelData, err := b.handler.GetClient().GetChannelInfo(channelID)
 	if err != nil {
-		return fmt.Errorf("get channel data: %w", err)
+		return true, fmt.Errorf("get channel data: %w", err)
 	}
 
 	if u.Pubkey != channelData.Owner {
-		return fmt.Errorf(
+		return false, fmt.Errorf(
 			"you must be the owner of channel %q to control its filters",
 			channelData.Title,
 		)
@@ -150,7 +160,7 @@ func (b *uBot) handleUserTextRequest(u memory.User, channelID string) error {
 	// check channel saved
 	isChannelSaved, err := b.dbConn.IsChannelExists(memory.Channel{ID: channelID})
 	if err != nil {
-		return fmt.Errorf("check channel exists: %w", err)
+		return true, fmt.Errorf("check channel exists: %w", err)
 	}
 	if !isChannelSaved {
 		// save channel
@@ -159,34 +169,34 @@ func (b *uBot) handleUserTextRequest(u memory.User, channelID string) error {
 			OwnerPubkey: channelData.Owner,
 			Filters:     make(memory.UserFilters),
 		}); err != nil {
-			return fmt.Errorf("save channel: %w", err)
+			return true, fmt.Errorf("save channel: %w", err)
 		}
 	}
 
 	// get channel config from db
 	channelBotConfig, err := b.dbConn.GetChannel(channelID)
 	if err != nil {
-		return fmt.Errorf("get bot channel config: %w", err)
+		return true, fmt.Errorf("get bot channel config: %w", err)
 	}
 
 	// check owner
 	if channelBotConfig.OwnerPubkey != channelData.Owner {
 		// channel owner was changed: save actual owner
 		if err := b.dbConn.SetChannelOwner(channelID, channelData.Owner); err != nil {
-			return fmt.Errorf("set channel owner: %w", err)
+			return true, fmt.Errorf("set channel owner: %w", err)
 		}
 	}
 
 	msg := "Send me the number of the selected option:" +
 		getCommandsMessage(channelBotConfig.Filters)
 	if _, err := b.handler.GetClient().SendInstantMessage(u.Pubkey, msg); err != nil {
-		return fmt.Errorf("send user commands: %w", err)
+		return true, fmt.Errorf("send user commands: %w", err)
 	}
 
 	if err := b.dbConn.ToogleUserCommandMode(u.Pubkey, true); err != nil {
-		return fmt.Errorf("toogle user command mode: %w", err)
+		return true, fmt.Errorf("toogle user command mode: %w", err)
 	}
-	return nil
+	return false, nil
 }
 
 func (b *uBot) onChannelMessage(message structs.WsChannelMessage) {
