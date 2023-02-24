@@ -197,7 +197,7 @@ func (b *uBot) handleUserTextRequest(
 		return true, fmt.Errorf("parse channel filters: %w", err)
 	}
 
-	msg := "Send me the number of the selected option:" +
+	msg := "Send me the number of the selected option:\n\n" +
 		getCommandsMessage(filters)
 	if _, err := b.handler.GetClient().SendInstantMessage(u.Pubkey, msg); err != nil {
 		return true, fmt.Errorf("send user commands: %w", err)
