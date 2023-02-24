@@ -1,6 +1,11 @@
 package memory
 
-import "gorm.io/gorm"
+import (
+	"encoding/json"
+	"fmt"
+
+	"gorm.io/gorm"
+)
 
 var models = []interface{}{
 	&User{}, &Channel{},
@@ -14,6 +19,7 @@ type User struct {
 	Payload          string
 }
 
+// filter tag -> enabled
 type UserFilters map[string]bool
 
 type Channel struct {
@@ -21,7 +27,7 @@ type Channel struct {
 
 	ID          string
 	OwnerPubkey string
-	Filters     UserFilters // filter tag -> enabled
+	FiltersJSON string
 }
 
 func (User) TableName() string {
@@ -30,4 +36,12 @@ func (User) TableName() string {
 
 func (Channel) TableName() string {
 	return "channels"
+}
+
+func (c Channel) GetFilters() (UserFilters, error) {
+	var f UserFilters
+	if err := json.Unmarshal([]byte(c.FiltersJSON), &f); err != nil {
+		return f, fmt.Errorf("decode filters: %w", err)
+	}
+	return f, nil
 }

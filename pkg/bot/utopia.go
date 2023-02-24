@@ -164,10 +164,15 @@ func (b *uBot) handleUserTextRequest(
 	}
 	if !isChannelSaved {
 		// save channel
+		defFiltersJSON, err := getDefaultFiltersJSON()
+		if err != nil {
+			return true, fmt.Errorf("get default filters: %w", err)
+		}
+
 		if err := b.dbConn.SaveChannel(memory.Channel{
 			ID:          channelID,
 			OwnerPubkey: channelData.Owner,
-			Filters:     make(memory.UserFilters),
+			FiltersJSON: defFiltersJSON,
 		}); err != nil {
 			return true, fmt.Errorf("save channel: %w", err)
 		}
@@ -187,8 +192,13 @@ func (b *uBot) handleUserTextRequest(
 		}
 	}
 
+	filters, err := channelBotConfig.GetFilters()
+	if err != nil {
+		return true, fmt.Errorf("parse channel filters: %w", err)
+	}
+
 	msg := "Send me the number of the selected option:" +
-		getCommandsMessage(channelBotConfig.Filters)
+		getCommandsMessage(filters)
 	if _, err := b.handler.GetClient().SendInstantMessage(u.Pubkey, msg); err != nil {
 		return true, fmt.Errorf("send user commands: %w", err)
 	}
