@@ -75,7 +75,36 @@ func (b *uBot) onError(err error) {
 }
 
 func (b *uBot) onContactMessage(message structs.InstantMessage) {
-	if len(message.Text) == channelIDLength { // TODO: check for hex
+	// check user exists
+	isUserSaved, err := b.dbConn.IsUserExists(memory.User{Pubkey: message.Pubkey})
+	if err != nil {
+		b.onError(fmt.Errorf("check user exists: %w", err))
+		return
+	}
+	if !isUserSaved {
+		if err := b.dbConn.SaveUser(memory.User{Pubkey: message.Pubkey}); err != nil {
+			b.onError(fmt.Errorf("save user: %w", err))
+			return
+		}
+	}
+
+	// get user data
+	u, err := b.dbConn.GetUser(message.Pubkey)
+	if err != nil {
+		b.onError(fmt.Errorf("get user data: %w", err))
+		return
+	}
+
+	if u.EnterCommandMode {
+		err = b.handleUserCommand(u, message.Text)
+	} else {
+		err = b.handleUserTextRequest(u, message.Text)
+	}
+	if err != nil {
+		b.onError(fmt.Errorf("handle user request: %w", err))
+	}
+
+	/*if len(message.Text) == channelIDLength { // TODO: check for hex
 		channelID := message.Text
 
 		// check channel exists
@@ -114,7 +143,17 @@ func (b *uBot) onContactMessage(message structs.InstantMessage) {
 			}
 		}
 
-	}
+	}*/
+}
+
+func (b *uBot) handleUserCommand(u memory.User, msgText string) error {
+	// TODO
+	return nil
+}
+
+func (b *uBot) handleUserTextRequest(u memory.User, msgText string) error {
+	// TODO
+	return nil
 }
 
 func (b *uBot) onChannelMessage(message structs.WsChannelMessage) {
