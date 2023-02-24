@@ -1,7 +1,9 @@
 package bot
 
 import (
+	"bot/pkg/filter"
 	"bot/pkg/memory"
+	"errors"
 	"fmt"
 
 	"github.com/Sagleft/uchatbot-engine"
@@ -104,7 +106,7 @@ func (b *uBot) onContactMessage(message structs.InstantMessage) {
 		b.onError(fmt.Errorf("handle user request: %w", err))
 	}
 
-	/*if len(message.Text) == channelIDLength { // TODO: check for hex
+	/* { // TODO: check for hex
 		channelID := message.Text
 
 		// check channel exists
@@ -151,8 +153,11 @@ func (b *uBot) handleUserCommand(u memory.User, msgText string) error {
 	return nil
 }
 
-func (b *uBot) handleUserTextRequest(u memory.User, msgText string) error {
-	// TODO
+func (b *uBot) handleUserTextRequest(u memory.User, channelID string) error {
+	if !filter.NewChannelsFilter().Use(channelID) {
+		return errors.New("Write me the channel ID, anti-spam filters for which you need to configure")
+	}
+
 	return nil
 }
 
