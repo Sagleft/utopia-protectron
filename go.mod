@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/Sagleft/swiss-knife v1.3.0
-	github.com/Sagleft/uchatbot-engine v1.6.0
+	github.com/Sagleft/uchatbot-engine v1.7.0
 	github.com/Sagleft/utopialib-go/v2 v2.4.0
 	github.com/fatih/color v1.14.1
 	github.com/stretchr/testify v1.8.1

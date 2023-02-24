@@ -157,6 +157,19 @@ func (b *uBot) handleUserTextRequest(u memory.User, channelID string) error {
 		return errorChannelIDMustBeSent
 	}
 
+	// check channel ownership
+	channelData, err := b.handler.GetClient().GetChannelInfo(channelID)
+	if err != nil {
+		return fmt.Errorf("get channel data: %w", err)
+	}
+
+	if u.Pubkey != channelData.Owner {
+		return fmt.Errorf(
+			"you must be the owner of channel %q to control its filters",
+			channelData.Title,
+		)
+	}
+
 	return nil
 }
 
