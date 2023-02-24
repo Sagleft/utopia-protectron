@@ -16,7 +16,7 @@ func getEmojiTag(isFilterActivated bool) string {
 }
 
 func getCommandsMessage(uFilters memory.UserFilters) string {
-	msg := "[0] - exit edit mode\n"
+	msg := "[0] [bye-text]\n"
 
 	filters := filter.GetFiltersArray()
 
@@ -29,7 +29,7 @@ func getCommandsMessage(uFilters memory.UserFilters) string {
 
 		msg += fmt.Sprintf(
 			"[%v] %s %s\n",
-			i, getEmojiTag(isActivated), f.GetName(),
+			i+1, getEmojiTag(isActivated), f.GetName(),
 		)
 	}
 
