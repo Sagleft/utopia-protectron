@@ -153,6 +153,19 @@ func (b *uBot) isJoinedToChannel(channelID string) (bool, error) {
 	return len(channels) == 1, nil
 }
 
+func (b *uBot) joinChannel(channelID string) error {
+	isJoined, err := b.isJoinedToChannel(channelID)
+	if err != nil {
+		return fmt.Errorf("check channel joined: %w", err)
+	}
+	if !isJoined {
+		if _, err := b.handler.GetClient().JoinChannel(channelID); err != nil {
+			return fmt.Errorf("join to channel: %w", err)
+		}
+	}
+	return nil
+}
+
 func (b *uBot) handleUserTextRequest(
 	u memory.User,
 	channelID string,
@@ -209,14 +222,8 @@ func (b *uBot) handleUserTextRequest(
 		}
 	}
 
-	isJoined, err := b.isJoinedToChannel(channelID)
-	if err != nil {
-		return true, fmt.Errorf("check channel joined: %w", err)
-	}
-	if !isJoined {
-		if _, err := b.handler.GetClient().JoinChannel(channelID); err != nil {
-			return true, fmt.Errorf("join to channel: %w", err)
-		}
+	if err := b.joinChannel(channelID); err != nil {
+		return true, err
 	}
 
 	filters, err := channelBotConfig.GetFilters()
