@@ -150,6 +150,9 @@ func (b *uBot) handleUserCommand(u memory.User, msgText string) (string, error) 
 		if err := b.dbConn.ToggleUserCommandMode(u.Pubkey, false); err != nil {
 			return "", fmt.Errorf("toggle user mode: %w", err)
 		}
+		if err := b.dbConn.SetUserPayload(u, ""); err != nil {
+			b.onError(err)
+		}
 
 		return "OK", nil
 	}
