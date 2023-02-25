@@ -485,9 +485,32 @@ func (b *uBot) onChannelMessage(message structs.WsChannelMessage) {
 		return
 	}
 
-	// TODO: filter message
+	// get channel filters from cache
+	filters := b.getFiltersPerChannel(message.ChannelID)
 
-	// TODO: remove spam
+	// filter message
+	for filterTag, filterActive := range filters {
+		if !filterActive {
+			continue
+		}
+
+		f, isFound := filter.AllFiltersMap[filterTag]
+		if !isFound {
+			b.onError(fmt.Errorf("filter %q not found", filterTag))
+			return
+		}
+
+		if f.Use(message.Text) {
+			// spam detected
+			if err := b.handler.GetClient().RemoveChannelMessage(
+				message.ChannelID,
+				message.ID,
+			); err != nil {
+				b.onError(fmt.Errorf("remove spam: %w", err))
+			}
+			return
+		}
+	}
 }
 
 func (b *uBot) onPrivateChannelMessage(message structs.WsChannelMessage) {

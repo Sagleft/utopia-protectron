@@ -2,6 +2,7 @@ package filter
 
 import "regexp"
 
+var AllFiltersMap = getFiltersMap()
 var marchURLRegExp = regexp.MustCompile(`\bhttps?://\S+\b`)
 var marchIdyllRegExp = regexp.MustCompile(`\butopia://\S+\b`)
 
@@ -22,7 +23,7 @@ func GetFiltersArray() []Filter {
 	}
 }
 
-func GetFiltersMap() map[string]Filter {
+func getFiltersMap() map[string]Filter {
 	m := map[string]Filter{}
 	filters := GetFiltersArray()
 

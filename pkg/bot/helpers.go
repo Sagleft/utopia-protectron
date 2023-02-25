@@ -38,7 +38,7 @@ func getCommandsMessage(uFilters memory.UserFilters) string {
 
 func getDefaultFilters() memory.UserFilters {
 	f := memory.UserFilters{}
-	for tag := range filter.GetFiltersMap() {
+	for tag := range filter.AllFiltersMap {
 		f[tag] = false
 	}
 	return f
