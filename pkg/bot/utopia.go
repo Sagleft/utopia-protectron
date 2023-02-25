@@ -4,6 +4,7 @@ import (
 	"bot/pkg/filter"
 	"bot/pkg/memory"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/Sagleft/uchatbot-engine"
@@ -58,18 +59,24 @@ func NewUtopiaBot(cfg UBotConfig, db memory.Memory) (Bot, error) {
 		return nil, err
 	}
 
-	if cfg.AutoChangeAccountName {
-		return b, b.fixAccountName(cfg.AccountName)
-	}
-
-	if err := b.loadOwnPubkey(); err != nil {
+	log.Println("load account data..")
+	accountData, err := b.loadOwnPubkey()
+	if err != nil {
 		return nil, fmt.Errorf("load own pubkey: %w", err)
 	}
 
+	if cfg.AutoChangeAccountName {
+		if err := b.fixAccountName(accountData, cfg.AccountName); err != nil {
+			return nil, fmt.Errorf("update account name: ")
+		}
+	}
+
+	log.Println("load filters..")
 	if err := b.loadFiltersPerChannel(); err != nil {
 		return nil, fmt.Errorf("load filters per channel: %w", err)
 	}
 
+	log.Println("load moderator rights..")
 	if err := b.loadModeratorRights(); err != nil {
 		return nil, fmt.Errorf("load moderator rights: %w", err)
 	}
@@ -77,14 +84,14 @@ func NewUtopiaBot(cfg UBotConfig, db memory.Memory) (Bot, error) {
 	return b, nil
 }
 
-func (b *uBot) loadOwnPubkey() error {
+func (b *uBot) loadOwnPubkey() (structs.OwnContactData, error) {
 	accountData, err := b.handler.GetClient().GetOwnContact()
 	if err != nil {
-		return fmt.Errorf("get account data: %w", err)
+		return structs.OwnContactData{}, fmt.Errorf("get account data: %w", err)
 	}
 
 	b.pubkey = accountData.Pubkey
-	return nil
+	return accountData, nil
 }
 
 // find channels where bot was joined & have moderator rights
@@ -531,13 +538,11 @@ func (b *uBot) onPrivateChannelMessage(message structs.WsChannelMessage) {
 	)
 }
 
-func (b *uBot) fixAccountName(accountName string) error {
-	data, err := b.handler.GetOwnContact()
-	if err != nil {
-		return fmt.Errorf("get own contact: %w", err)
-	}
-
-	if data.Nick == defaultAccountName {
+func (b *uBot) fixAccountName(
+	accountData structs.OwnContactData,
+	accountName string,
+) error {
+	if accountData.Nick == defaultAccountName {
 		if err := b.handler.SetAccountNickname(accountName); err != nil {
 			return fmt.Errorf("set account nickname: %w", err)
 		}
