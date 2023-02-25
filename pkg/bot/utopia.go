@@ -5,6 +5,7 @@ import (
 	"bot/pkg/memory"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/Sagleft/uchatbot-engine"
 	utopiago "github.com/Sagleft/utopialib-go/v2"
@@ -151,6 +152,20 @@ func (b *uBot) handleUserCommand(u memory.User, msgText string) (string, error) 
 		}
 
 		return "OK", nil
+	}
+
+	// parse command code
+	commandCode, err := strconv.ParseInt(msgText, 10, 32)
+	if err != nil {
+		return "", fmt.Errorf("parse command from user input %q: %w", msgText, err)
+	}
+
+	// verify command code
+	filters := filter.GetFiltersArray()
+	commandFilterIndex := int(commandCode - 1)
+
+	if !(commandFilterIndex >= 0 && commandFilterIndex < len(filters)) {
+		return "Incorrect command code, must be the number of one of the items", nil
 	}
 
 	// TODO
