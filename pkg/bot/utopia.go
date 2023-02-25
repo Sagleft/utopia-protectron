@@ -447,6 +447,16 @@ func (b *uBot) handleUserTextRequest(
 		return "", err
 	}
 
+	canRemoveSpam, err := b.canRemoveSpamInChannel(channelID)
+	if err != nil {
+		return "", fmt.Errorf("check channel rights: %w", err)
+	}
+	if !canRemoveSpam {
+		return "I need rights to delete messages in the channel. " +
+			"Make me a moderator, give me appropriate rights " +
+			"and send me the channel ID again. Thank you", nil
+	}
+
 	filters, err := channelBotConfig.GetFilters()
 	if err != nil {
 		return "", fmt.Errorf("parse channel filters: %w", err)
