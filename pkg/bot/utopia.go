@@ -7,6 +7,7 @@ import (
 
 	"github.com/Sagleft/uchatbot-engine"
 	utopiago "github.com/Sagleft/utopialib-go/v2"
+	"github.com/Sagleft/utopialib-go/v2/pkg/consts"
 	"github.com/Sagleft/utopialib-go/v2/pkg/structs"
 	"github.com/fatih/color"
 )
@@ -15,6 +16,10 @@ const (
 	channelIDLength    = 32
 	defaultAccountName = "account.db"
 )
+
+const defaultPrivateMessage = "Hi. Interested in this bot? " +
+	"Check out the other sample projects:\n" +
+	"https://udocs.gitbook.io/utopia-api/"
 
 type uBot struct {
 	handler *uchatbot.ChatBot
@@ -136,6 +141,18 @@ func (b *uBot) handleUserCommand(u memory.User, msgText string) error {
 	return nil
 }
 
+func (b *uBot) isJoinedToChannel(channelID string) (bool, error) {
+	channels, err := b.handler.GetClient().GetChannels(structs.GetChannelsTask{
+		SearchFilter: channelID,
+		ChannelType:  consts.ChannelTypeJoined,
+	})
+	if err != nil {
+		return false, fmt.Errorf("get channels joined: %w", err)
+	}
+
+	return len(channels) == 1, nil
+}
+
 func (b *uBot) handleUserTextRequest(
 	u memory.User,
 	channelID string,
@@ -192,6 +209,16 @@ func (b *uBot) handleUserTextRequest(
 		}
 	}
 
+	isJoined, err := b.isJoinedToChannel(channelID)
+	if err != nil {
+		return true, fmt.Errorf("check channel joined: %w", err)
+	}
+	if !isJoined {
+		if _, err := b.handler.GetClient().JoinChannel(channelID); err != nil {
+			return true, fmt.Errorf("join to channel: %w", err)
+		}
+	}
+
 	filters, err := channelBotConfig.GetFilters()
 	if err != nil {
 		return true, fmt.Errorf("parse channel filters: %w", err)
@@ -210,16 +237,20 @@ func (b *uBot) handleUserTextRequest(
 }
 
 func (b *uBot) onChannelMessage(message structs.WsChannelMessage) {
-	// TODO
+	// TODO: check channel is connected
+
+	// TODO: check bot moderator rights
+
+	// TODO: filter message
+
+	// TODO: remove spam
 }
 
 func (b *uBot) onPrivateChannelMessage(message structs.WsChannelMessage) {
 	b.handler.SendChannelPrivateMessage(
 		message.ChannelID,
 		message.PubkeyHash,
-		"Hi. Interested in this bot? "+
-			"Check out the other sample projects:\n"+
-			"https://udocs.gitbook.io/utopia-api/",
+		defaultPrivateMessage,
 	)
 }
 
