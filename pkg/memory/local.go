@@ -85,14 +85,14 @@ func (db *localDB) GetChannel(channelID string) (Channel, error) {
 }
 
 func (db *localDB) ToggleUserCommandMode(pubkey string, enabled bool) error {
-	return db.conn.Model(&User{}).Where("Pubkey", pubkey).
+	return db.conn.Model(&User{}).Where("pubkey", pubkey).
 		Updates(User{
 			EnterCommandMode: enabled,
 		}).Error
 }
 
 func (db *localDB) SetUserPayload(u User, payload string) error {
-	return db.conn.Model(&User{}).Where("Pubkey", u.Pubkey).
+	return db.conn.Model(&User{}).Where("pubkey", u.Pubkey).
 		Updates(User{
 			Payload: payload,
 		}).Error
@@ -107,7 +107,7 @@ func (db *localDB) GetUser(pubkey string) (User, error) {
 }
 
 func (db *localDB) SetChannelOwner(channelID, ownerPubkey string) error {
-	return db.conn.Model(&Channel{}).Where("OwnerPubkey", ownerPubkey).
+	return db.conn.Model(&Channel{}).Where("owner_pubkey", ownerPubkey).
 		Updates(Channel{
 			OwnerPubkey: ownerPubkey,
 		}).Error
@@ -119,7 +119,7 @@ func (db *localDB) UpdateChannelFilters(channelID string, f UserFilters) error {
 		return fmt.Errorf("encode channel filters: %w", err)
 	}
 
-	return db.conn.Model(&Channel{}).Where("ID", channelID).
+	return db.conn.Model(&Channel{}).Where("id", channelID).
 		Updates(Channel{
 			FiltersJSON: string(filterBytes),
 		}).Error
