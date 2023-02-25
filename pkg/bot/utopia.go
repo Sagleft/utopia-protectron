@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/Sagleft/uchatbot-engine"
-	utopiago "github.com/Sagleft/utopialib-go/v2"
 	"github.com/Sagleft/utopialib-go/v2/pkg/consts"
 	"github.com/Sagleft/utopialib-go/v2/pkg/structs"
 	"github.com/fatih/color"
@@ -27,19 +26,18 @@ type uBot struct {
 	handler *uchatbot.ChatBot
 	dbConn  memory.Memory
 	cfg     UBotConfig
-}
 
-type UBotConfig struct {
-	WelcomeMessage        string          `json:"welcomeMessage"`
-	AccountName           string          `json:"accountName"`
-	AutoChangeAccountName bool            `json:"autoChangeAccountName"`
-	UtopiaConfig          utopiago.Config `json:"utopia"`
+	pubkey            string
+	rightsPerChannel  channelModeratorRights
+	filtersPerChannel channelFiltersData
 }
 
 func NewUtopiaBot(cfg UBotConfig, db memory.Memory) (Bot, error) {
 	b := &uBot{
-		dbConn: db,
-		cfg:    cfg,
+		dbConn:            db,
+		cfg:               cfg,
+		rightsPerChannel:  make(channelModeratorRights),
+		filtersPerChannel: make(channelFiltersData),
 	}
 
 	var err error
@@ -64,7 +62,126 @@ func NewUtopiaBot(cfg UBotConfig, db memory.Memory) (Bot, error) {
 		return b, b.fixAccountName(cfg.AccountName)
 	}
 
+	if err := b.loadOwnPubkey(); err != nil {
+		return nil, fmt.Errorf("load own pubkey: %w", err)
+	}
+
+	if err := b.loadFiltersPerChannel(); err != nil {
+		return nil, fmt.Errorf("load filters per channel: %w", err)
+	}
+
+	if err := b.loadModeratorRights(); err != nil {
+		return nil, fmt.Errorf("load moderator rights: %w", err)
+	}
+
 	return b, nil
+}
+
+func (b *uBot) loadOwnPubkey() error {
+	accountData, err := b.handler.GetClient().GetOwnContact()
+	if err != nil {
+		return fmt.Errorf("get account data: %w", err)
+	}
+
+	b.pubkey = accountData.Pubkey
+	return nil
+}
+
+// find channels where bot was joined & have moderator rights
+func (b *uBot) loadModeratorRights() error {
+	channels, err := b.handler.GetClient().GetChannels(structs.GetChannelsTask{
+		ChannelType: consts.ChannelTypeJoined,
+	})
+	if err != nil {
+		return fmt.Errorf("get channels joined: %w", err)
+	}
+
+	for _, channelData := range channels {
+		if _, err := b.refreshChannelModeratorRights(channelData.ChannelID); err != nil {
+			return fmt.Errorf("refresh channel rights: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (b *uBot) loadFiltersPerChannel() error {
+	channels, err := b.dbConn.GetChannels()
+	if err != nil {
+		return fmt.Errorf("get channels: %w", err)
+	}
+
+	for _, channelData := range channels {
+		channelFilters, err := channelData.GetFilters()
+		if err != nil {
+			return fmt.Errorf("get channel filters: %w", err)
+		}
+
+		b.updateFiltersPerChannel(channelData.ID, channelFilters)
+	}
+
+	return nil
+}
+
+func (b *uBot) updateFiltersPerChannel(
+	channelID string,
+	channelFilters memory.UserFilters,
+) {
+	b.filtersPerChannel[channelID] = channelFilters
+}
+
+func (b *uBot) getFiltersPerChannel(channelID string) memory.UserFilters {
+	filters, isExists := b.filtersPerChannel[channelID]
+	if isExists {
+		return filters
+	}
+
+	return getDefaultFilters()
+}
+
+func (b *uBot) updateChannelModeratorRights(
+	channelID string,
+	rights structs.ModeratorRights,
+) {
+	b.rightsPerChannel[channelID] = rights
+}
+
+func (b *uBot) refreshChannelModeratorRights(
+	channelID string,
+) (structs.ModeratorRights, error) {
+	r, err := b.getChannelModeratorRights(channelID)
+	if err != nil {
+		return r, fmt.Errorf(
+			"get channel %q moderator rights: %w",
+			channelID, err,
+		)
+	}
+
+	b.updateChannelModeratorRights(channelID, r)
+	return r, nil
+}
+
+// can bot delete spam messages in channel?
+func (b *uBot) canRemoveSpamInChannel(channelID string) (bool, error) {
+	var err error
+	r, isFound := b.rightsPerChannel[channelID]
+	if !isFound {
+		r, err = b.refreshChannelModeratorRights(channelID)
+		if err != nil {
+			return false, fmt.Errorf("refresh channel rights: %w", err)
+		}
+	}
+	return r.CanDeleteMessages, nil
+}
+
+func (b *uBot) getChannelModeratorRights(channelID string) (
+	structs.ModeratorRights,
+	error,
+) {
+	return b.handler.GetClient().GetChannelModeratorRights(
+		channelID,
+		b.pubkey,
+	)
 }
 
 func (b *uBot) onWelcomeMessage(userPubkey string) string {
@@ -196,9 +313,13 @@ func (b *uBot) handleUserCommand(u memory.User, msgText string) (string, error) 
 	enabled = !enabled
 	channelFilters[filterTag] = enabled
 
+	// update user filters config for channel
 	if err := b.dbConn.UpdateChannelFilters(channelID, channelFilters); err != nil {
 		return "", fmt.Errorf("update channel filters: %w", err)
 	}
+
+	// update cached filters in bot
+	b.updateFiltersPerChannel(channelID, channelFilters)
 
 	return getCommandsMessage(channelFilters), nil
 }
@@ -345,9 +466,24 @@ func (b *uBot) handleUserTextRequest(
 }
 
 func (b *uBot) onChannelMessage(message structs.WsChannelMessage) {
-	// TODO: check channel is connected
+	// check channel is connected
+	isExists, err := b.dbConn.IsChannelExists(memory.Channel{ID: message.ChannelID})
+	if err != nil {
+		b.onError(fmt.Errorf("check channel exists: %w", err))
+		return
+	}
+	if !isExists {
+		return
+	}
 
-	// TODO: check bot moderator rights
+	// check bot moderator rights to remove spam
+	canDelete, err := b.canRemoveSpamInChannel(message.ChannelID)
+	if err != nil {
+		b.onError(fmt.Errorf("check rights to delete: %w", err))
+	}
+	if !canDelete {
+		return
+	}
 
 	// TODO: filter message
 

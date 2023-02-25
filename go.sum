@@ -1,9 +1,9 @@
 github.com/Sagleft/swiss-knife v1.3.0 h1:d9Fl9IEPvCgYZhAGeu0R5A6QirGFwM2PST37LLJjXOc=
 github.com/Sagleft/swiss-knife v1.3.0/go.mod h1:Zw4i+m87cG3p8NJjqlW1uz6+P2VycFl5ssVt2VfCITM=
-github.com/Sagleft/uchatbot-engine v1.7.0 h1:7vZL4GAqsWnAwqOlkiaaULBjQzVqWvufwsyqUfJLJ38=
-github.com/Sagleft/uchatbot-engine v1.7.0/go.mod h1:8IdHzeijmbs6PG0J2AZsJqeHX/1haLBBEm2ARO8SPOY=
-github.com/Sagleft/utopialib-go/v2 v2.4.0 h1:XvxEXEFB/Gopd/qkGsqSWE9HlBioP0qruFBeJ/LBzEo=
-github.com/Sagleft/utopialib-go/v2 v2.4.0/go.mod h1:9HuTLrcyVlaNIW3Vw4FCMrlOFt2fJ0ZI8WBOk5+2e6M=
+github.com/Sagleft/uchatbot-engine v1.8.1 h1:tlGxyojh3w88xFS6xBjry+h60ZCJXkdfcIt7aJUV9GA=
+github.com/Sagleft/uchatbot-engine v1.8.1/go.mod h1:LJHWOCi+kSDSn/f/pLyzi5Iq22bNC8qvmM/fvLw/SRo=
+github.com/Sagleft/utopialib-go/v2 v2.5.1 h1:ltORHWWh1lniJ96fFXYs8ZdGMmAYDZufFbl1VQHY+FE=
+github.com/Sagleft/utopialib-go/v2 v2.5.1/go.mod h1:9HuTLrcyVlaNIW3Vw4FCMrlOFt2fJ0ZI8WBOk5+2e6M=
 github.com/beefsack/go-rate v0.0.0-20220214233405-116f4ca011a0 h1:0b2vaepXIfMsG++IsjHiI2p4bxALD1Y2nQKGMR5zDQM=
 github.com/beefsack/go-rate v0.0.0-20220214233405-116f4ca011a0/go.mod h1:6YNgTHLutezwnBvyneBbwvB8C82y3dcoOj5EQJIdGXA=
 github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be h1:J5BL2kskAlV9ckgEsNQXscjIaLiOYiZ75d4e94E6dcQ=

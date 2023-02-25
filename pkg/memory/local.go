@@ -124,3 +124,9 @@ func (db *localDB) UpdateChannelFilters(channelID string, f UserFilters) error {
 			FiltersJSON: string(filterBytes),
 		}).Error
 }
+
+func (db *localDB) GetChannels() ([]Channel, error) {
+	channels := []Channel{}
+	result := db.conn.Find(&channels)
+	return channels, result.Error
+}

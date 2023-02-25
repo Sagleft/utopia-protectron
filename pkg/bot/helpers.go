@@ -36,12 +36,16 @@ func getCommandsMessage(uFilters memory.UserFilters) string {
 	return msg
 }
 
-func getDefaultFiltersJSON() (string, error) {
+func getDefaultFilters() memory.UserFilters {
 	f := memory.UserFilters{}
-
 	for tag := range filter.GetFiltersMap() {
 		f[tag] = false
 	}
+	return f
+}
+
+func getDefaultFiltersJSON() (string, error) {
+	f := getDefaultFilters()
 
 	fBytes, err := json.Marshal(f)
 	if err != nil {

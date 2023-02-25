@@ -19,6 +19,7 @@ type Memory interface {
 	IsChannelExists(c Channel) (bool, error)
 	SaveChannel(c Channel) error
 	GetChannel(channelID string) (Channel, error)
+	GetChannels() ([]Channel, error)
 	SetChannelOwner(channelID, ownerPubkey string) error
 	UpdateChannelFilters(channelID string, f UserFilters) error
 }
