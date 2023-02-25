@@ -87,7 +87,7 @@ func (db *localDB) GetChannel(channelID string) (Channel, error) {
 func (db *localDB) ToggleUserCommandMode(pubkey string, enabled bool) error {
 	return db.conn.Model(&User{}).Where("pubkey", pubkey).
 		Updates(User{
-			EnterCommandMode: enabled,
+			EnterCommandMode: &enabled,
 		}).Error
 }
 

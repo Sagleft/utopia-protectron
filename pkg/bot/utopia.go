@@ -110,7 +110,7 @@ func (b *uBot) onContactMessage(msg structs.InstantMessage) {
 	}
 
 	var message string
-	if u.EnterCommandMode {
+	if *u.EnterCommandMode {
 		message, err = b.handleUserCommand(u, msg.Text)
 	} else {
 		message, err = b.handleUserTextRequest(u, msg.Text)
@@ -153,7 +153,8 @@ func (b *uBot) handleUserCommand(u memory.User, msgText string) (string, error) 
 			b.onError(err)
 		}
 
-		return "OK", nil
+		return "OK. When you want to add a new channel " +
+			"or change the settings of an existing one, send me its ID", nil
 	}
 
 	// parse command code

@@ -15,7 +15,7 @@ type User struct {
 	gorm.Model
 
 	Pubkey           string `gorm:"primaryKey"`
-	EnterCommandMode bool   `gorm:"default:false;"`
+	EnterCommandMode *bool  `gorm:"type:boolean; column:enter_command_mode; default:false;"`
 	Payload          string
 }
 
