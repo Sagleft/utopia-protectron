@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -109,5 +110,17 @@ func (db *localDB) SetChannelOwner(channelID, ownerPubkey string) error {
 	return db.conn.Model(&Channel{}).Where("OwnerPubkey", ownerPubkey).
 		Updates(Channel{
 			OwnerPubkey: ownerPubkey,
+		}).Error
+}
+
+func (db *localDB) UpdateChannelFilters(channelID string, f UserFilters) error {
+	filterBytes, err := json.Marshal(f)
+	if err != nil {
+		return fmt.Errorf("encode channel filters: %w", err)
+	}
+
+	return db.conn.Model(&Channel{}).Where("ID", channelID).
+		Updates(Channel{
+			FiltersJSON: string(filterBytes),
 		}).Error
 }

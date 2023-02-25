@@ -20,4 +20,5 @@ type Memory interface {
 	SaveChannel(c Channel) error
 	GetChannel(channelID string) (Channel, error)
 	SetChannelOwner(channelID, ownerPubkey string) error
+	UpdateChannelFilters(channelID string, f UserFilters) error
 }

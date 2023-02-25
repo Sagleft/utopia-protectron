@@ -168,9 +168,36 @@ func (b *uBot) handleUserCommand(u memory.User, msgText string) (string, error) 
 		return "Incorrect command code, must be the number of one of the items", nil
 	}
 
-	// toggle user filter
+	filterTag := filters[commandFilterIndex].GetTag()
 
-	// TODO
+	// TODO: verify user payload
+	channelID := u.Payload
+
+	// get channel filters
+	channelData, err := b.dbConn.GetChannel(channelID)
+	if err != nil {
+		return "", fmt.Errorf("get channel data: %w", err)
+	}
+
+	// get channel filters
+	channelFilters, err := channelData.GetFilters()
+	if err != nil {
+		return "", fmt.Errorf("get channel filters: %w", err)
+	}
+
+	// toggle user filter
+	enabled, isExists := channelFilters[filterTag]
+	if !isExists {
+		enabled = false
+	}
+	enabled = !enabled
+	channelFilters[filterTag] = enabled
+
+	if err := b.dbConn.UpdateChannelFilters(channelID, channelFilters); err != nil {
+		return "", fmt.Errorf("update channel filters: %w", err)
+	}
+
+	// TODO: get new commands message
 	return "TODO", nil
 }
 
