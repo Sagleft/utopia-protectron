@@ -200,8 +200,7 @@ func (b *uBot) handleUserCommand(u memory.User, msgText string) (string, error) 
 		return "", fmt.Errorf("update channel filters: %w", err)
 	}
 
-	// TODO: get new commands message
-	return "TODO", nil
+	return getCommandsMessage(channelFilters), nil
 }
 
 func (b *uBot) isJoinedToChannel(channelID string) (bool, error) {
