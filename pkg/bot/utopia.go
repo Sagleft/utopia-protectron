@@ -3,7 +3,6 @@ package bot
 import (
 	"bot/pkg/filter"
 	"bot/pkg/memory"
-	"errors"
 	"fmt"
 	"strconv"
 
@@ -143,7 +142,7 @@ func (b *uBot) onContactMessage(msg structs.InstantMessage) {
 
 func (b *uBot) handleUserCommand(u memory.User, msgText string) (string, error) {
 	if len(msgText) > commandMessageMaxLength {
-		return "", errors.New("you must enter the option number")
+		return "You must enter the option number", nil
 	}
 
 	if msgText == "0" {
