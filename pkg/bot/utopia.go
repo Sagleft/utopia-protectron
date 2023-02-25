@@ -145,6 +145,14 @@ func (b *uBot) handleUserCommand(u memory.User, msgText string) (string, error) 
 		return "", errors.New("you must enter the option number")
 	}
 
+	if msgText == "0" {
+		if err := b.dbConn.ToogleUserCommandMode(u.Pubkey, false); err != nil {
+			return "", fmt.Errorf("toogle user mode: %w", err)
+		}
+
+		return "OK", nil
+	}
+
 	// TODO
 	return "TODO", nil
 }
