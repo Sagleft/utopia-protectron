@@ -166,6 +166,64 @@ func (b *uBot) joinChannel(channelID string) error {
 	return nil
 }
 
+func (b *uBot) checkChannelOwner(
+	channelID string,
+	channelBotConfig memory.Channel,
+	channelData structs.ChannelData,
+) error {
+	if channelBotConfig.OwnerPubkey == channelData.Owner {
+		return nil
+	}
+
+	// channel owner was changed: save actual owner
+	if err := b.dbConn.SetChannelOwner(channelID, channelData.Owner); err != nil {
+		return fmt.Errorf("set channel owner: %w", err)
+	}
+	return nil
+}
+
+func (b *uBot) checkChannelSaved(
+	channelID string,
+	channelData structs.ChannelData,
+) error {
+	isChannelSaved, err := b.dbConn.IsChannelExists(memory.Channel{ID: channelID})
+	if err != nil {
+		return fmt.Errorf("check channel exists: %w", err)
+	}
+	if isChannelSaved {
+		return nil
+	}
+
+	// save channel
+	defFiltersJSON, err := getDefaultFiltersJSON()
+	if err != nil {
+		return fmt.Errorf("get default filters: %w", err)
+	}
+
+	if err := b.dbConn.SaveChannel(memory.Channel{
+		ID:          channelID,
+		OwnerPubkey: channelData.Owner,
+		FiltersJSON: defFiltersJSON,
+	}); err != nil {
+		return fmt.Errorf("save channel: %w", err)
+	}
+	return nil
+}
+
+func (b *uBot) checkChannelOwnership(
+	channelID string,
+	u memory.User,
+	channelData structs.ChannelData,
+) (maskError bool, handleErr error) {
+	if u.Pubkey != channelData.Owner {
+		return false, fmt.Errorf(
+			"you must be the owner of channel %q to control its filters",
+			channelData.Title,
+		)
+	}
+	return false, nil
+}
+
 func (b *uBot) handleUserTextRequest(
 	u memory.User,
 	channelID string,
@@ -174,38 +232,18 @@ func (b *uBot) handleUserTextRequest(
 		return false, errorChannelIDMustBeSent
 	}
 
-	// check channel ownership
 	channelData, err := b.handler.GetClient().GetChannelInfo(channelID)
 	if err != nil {
 		return true, fmt.Errorf("get channel data: %w", err)
 	}
 
-	if u.Pubkey != channelData.Owner {
-		return false, fmt.Errorf(
-			"you must be the owner of channel %q to control its filters",
-			channelData.Title,
-		)
-	}
-
-	// check channel saved
-	isChannelSaved, err := b.dbConn.IsChannelExists(memory.Channel{ID: channelID})
+	maskErr, err := b.checkChannelOwnership(channelID, u, channelData)
 	if err != nil {
-		return true, fmt.Errorf("check channel exists: %w", err)
+		return maskErr, err
 	}
-	if !isChannelSaved {
-		// save channel
-		defFiltersJSON, err := getDefaultFiltersJSON()
-		if err != nil {
-			return true, fmt.Errorf("get default filters: %w", err)
-		}
 
-		if err := b.dbConn.SaveChannel(memory.Channel{
-			ID:          channelID,
-			OwnerPubkey: channelData.Owner,
-			FiltersJSON: defFiltersJSON,
-		}); err != nil {
-			return true, fmt.Errorf("save channel: %w", err)
-		}
+	if err := b.checkChannelSaved(channelID, channelData); err != nil {
+		return true, err
 	}
 
 	// get channel config from db
@@ -214,12 +252,8 @@ func (b *uBot) handleUserTextRequest(
 		return true, fmt.Errorf("get bot channel config: %w", err)
 	}
 
-	// check owner
-	if channelBotConfig.OwnerPubkey != channelData.Owner {
-		// channel owner was changed: save actual owner
-		if err := b.dbConn.SetChannelOwner(channelID, channelData.Owner); err != nil {
-			return true, fmt.Errorf("set channel owner: %w", err)
-		}
+	if err := b.checkChannelOwner(channelID, channelBotConfig, channelData); err != nil {
+		return true, err
 	}
 
 	if err := b.joinChannel(channelID); err != nil {
