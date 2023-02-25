@@ -147,8 +147,8 @@ func (b *uBot) handleUserCommand(u memory.User, msgText string) (string, error) 
 	}
 
 	if msgText == "0" {
-		if err := b.dbConn.ToogleUserCommandMode(u.Pubkey, false); err != nil {
-			return "", fmt.Errorf("toogle user mode: %w", err)
+		if err := b.dbConn.ToggleUserCommandMode(u.Pubkey, false); err != nil {
+			return "", fmt.Errorf("toggle user mode: %w", err)
 		}
 
 		return "OK", nil
@@ -167,6 +167,8 @@ func (b *uBot) handleUserCommand(u memory.User, msgText string) (string, error) 
 	if !(commandFilterIndex >= 0 && commandFilterIndex < len(filters)) {
 		return "Incorrect command code, must be the number of one of the items", nil
 	}
+
+	// toggle user filter
 
 	// TODO
 	return "TODO", nil
@@ -303,7 +305,11 @@ func (b *uBot) handleUserTextRequest(
 	msg := "Send me the number of the selected option:\n\n" +
 		getCommandsMessage(filters)
 
-	if err := b.dbConn.ToogleUserCommandMode(u.Pubkey, true); err != nil {
+	if err := b.dbConn.SetUserPayload(u, channelID); err != nil {
+		return "", fmt.Errorf("set user payload: %w", err)
+	}
+
+	if err := b.dbConn.ToggleUserCommandMode(u.Pubkey, true); err != nil {
 		return "", fmt.Errorf("toogle user command mode: %w", err)
 	}
 	return msg, nil

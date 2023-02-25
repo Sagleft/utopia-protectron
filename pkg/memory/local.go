@@ -83,7 +83,7 @@ func (db *localDB) GetChannel(channelID string) (Channel, error) {
 	return c, result.Error
 }
 
-func (db *localDB) ToogleUserCommandMode(pubkey string, enabled bool) error {
+func (db *localDB) ToggleUserCommandMode(pubkey string, enabled bool) error {
 	return db.conn.Model(&User{}).Where("Pubkey", pubkey).
 		Updates(User{
 			EnterCommandMode: enabled,

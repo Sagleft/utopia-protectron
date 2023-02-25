@@ -10,8 +10,8 @@ type Memory interface {
 	// SaveUser - save user entry
 	SaveUser(u User) error
 
-	// ToogleUserCommandMode - mark whether the user is expected to enter a command
-	ToogleUserCommandMode(pubkey string, enabled bool) error
+	// ToggleUserCommandMode - mark whether the user is expected to enter a command
+	ToggleUserCommandMode(pubkey string, enabled bool) error
 
 	// SetUserPayload - update the data interacting with via command mode
 	SetUserPayload(u User, payload string) error
