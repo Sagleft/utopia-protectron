@@ -10,3 +10,9 @@ Procedure:
 2. add the bot as a moderator of your chat, giving him the right to delete messages;
 3. send the ID of your channel to the bot in your personal message;
 4. enable required anti-spam filters.
+
+## TODO
+
+1. sticker filter;
+2. repetitive message filter;
+3. banning a user if he violates too often
