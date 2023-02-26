@@ -28,17 +28,19 @@ type uBot struct {
 	dbConn  memory.Memory
 	cfg     UBotConfig
 
-	pubkey            string
-	rightsPerChannel  channelModeratorRights
-	filtersPerChannel channelFiltersData
+	pubkey               string
+	rightsPerChannel     channelModeratorRights
+	filtersPerChannel    channelFiltersData
+	moderatorsPerChannel moderatorsPerChannelData
 }
 
 func NewUtopiaBot(cfg UBotConfig, db memory.Memory) (Bot, error) {
 	b := &uBot{
-		dbConn:            db,
-		cfg:               cfg,
-		rightsPerChannel:  make(channelModeratorRights),
-		filtersPerChannel: make(channelFiltersData),
+		dbConn:               db,
+		cfg:                  cfg,
+		rightsPerChannel:     make(channelModeratorRights),
+		filtersPerChannel:    make(channelFiltersData),
+		moderatorsPerChannel: make(moderatorsPerChannelData),
 	}
 
 	var err error
@@ -107,6 +109,24 @@ func (b *uBot) loadModeratorRights() error {
 		if _, err := b.refreshChannelModeratorRights(channelData.ChannelID); err != nil {
 			return fmt.Errorf("refresh channel rights: %w", err)
 		}
+	}
+
+	return nil
+}
+
+func (b *uBot) refreshChannelModerators(channelID string) error {
+	moderators, err := b.handler.GetClient().GetChannelModerators(channelID)
+	if err != nil {
+		return fmt.Errorf("get channel moderators: %w", err)
+	}
+
+	_, isSet := b.moderatorsPerChannel[channelID]
+	if !isSet {
+		b.moderatorsPerChannel[channelID] = make(map[string]struct{})
+	}
+
+	for _, moderatorPubkey := range moderators {
+		b.moderatorsPerChannel[channelID][moderatorPubkey] = struct{}{}
 	}
 
 	return nil
@@ -479,7 +499,36 @@ func (b *uBot) handleUserTextRequest(
 	return msg, nil
 }
 
+func (b *uBot) isMessageFromModerator(
+	channelID string, userPubkey string,
+) (bool, error) {
+	if userPubkey == "" {
+		return false, nil
+	}
+
+	if err := b.refreshChannelModerators(channelID); err != nil {
+		return false, fmt.Errorf("refresh channel moderators: %w", err)
+	}
+
+	_, isChannelSet := b.moderatorsPerChannel[channelID]
+	if !isChannelSet {
+		return false, nil
+	}
+
+	_, isModeratorFound := b.moderatorsPerChannel[channelID][userPubkey]
+	return isModeratorFound, nil
+}
+
 func (b *uBot) onChannelMessage(message structs.WsChannelMessage) {
+	fromModer, err := b.isMessageFromModerator(message.ChannelID, message.Pubkey)
+	if err != nil {
+		b.onError(fmt.Errorf("check message from moderator: %w", err))
+		return
+	}
+	if fromModer && b.cfg.DoNotFilterModeratorMessages {
+		return
+	}
+
 	// check channel is connected
 	isExists, err := b.dbConn.IsChannelExists(memory.Channel{ID: message.ChannelID})
 	if err != nil {
