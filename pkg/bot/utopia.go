@@ -170,14 +170,11 @@ func (b *uBot) refreshChannelModeratorRights(
 
 // can bot delete spam messages in channel?
 func (b *uBot) canRemoveSpamInChannel(channelID string) (bool, error) {
-	var err error
-	r, isFound := b.rightsPerChannel[channelID]
-	if !isFound {
-		r, err = b.refreshChannelModeratorRights(channelID)
-		if err != nil {
-			return false, fmt.Errorf("refresh channel rights: %w", err)
-		}
+	r, err := b.refreshChannelModeratorRights(channelID)
+	if err != nil {
+		return false, fmt.Errorf("refresh channel rights: %w", err)
 	}
+
 	return r.CanDeleteMessages, nil
 }
 
