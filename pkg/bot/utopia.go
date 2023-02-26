@@ -514,11 +514,17 @@ func (b *uBot) onChannelMessage(message structs.WsChannelMessage) {
 			return
 		}
 
+		topicID, err := strconv.ParseInt(message.TopicID, 10, 64)
+		if err != nil {
+			b.onError(fmt.Errorf("parse topic ID: %w", err))
+			return
+		}
+
 		if f.Use(message.Text) {
 			// spam detected
 			if err := b.handler.GetClient().RemoveChannelMessage(
 				message.ChannelID,
-				message.ID,
+				topicID,
 			); err != nil {
 				b.onError(fmt.Errorf("remove spam: %w", err))
 			}
