@@ -20,6 +20,7 @@ func GetFiltersArray() []Filter {
 		NewExternalLinksFilter(),
 		NewNoPubkeyFilter(),
 		NewChannelsFilter(),
+		//NewStickersFilter(), //TODO
 	}
 }
 
