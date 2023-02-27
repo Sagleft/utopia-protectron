@@ -13,6 +13,8 @@ Procedure:
 
 ## build from source
 
+The ready build can be found on the [releases page](https://github.com/Sagleft/utopia-protectron/releases).
+
 ```bash
 git clone https://github.com/Sagleft/utopia-protectron.git protectron && cd protectron
 go build
