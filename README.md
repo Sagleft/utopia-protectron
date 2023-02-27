@@ -11,6 +11,21 @@ Procedure:
 3. send the ID of your channel to the bot in your personal message;
 4. enable required anti-spam filters.
 
+## build from source
+
+```bash
+git clone https://github.com/Sagleft/utopia-protectron.git protectron && cd protectron
+go build
+cp config.example.json config.json
+```
+
+to cross-platform build:
+```bash
+bash build.sh
+```
+
+The parameters for connecting to Utopia client are specified according to the example for connecting to the [docker container](https://github.com/Sagleft/utopia-api-docker).
+
 ## TODO
 
 1. sticker filter;

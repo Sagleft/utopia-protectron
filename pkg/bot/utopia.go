@@ -520,6 +520,8 @@ func (b *uBot) isMessageFromModerator(
 }
 
 func (b *uBot) onChannelMessage(message structs.WsChannelMessage) {
+	//message.MessageType
+
 	fromModer, err := b.isMessageFromModerator(message.ChannelID, message.Pubkey)
 	if err != nil {
 		b.onError(fmt.Errorf("check message from moderator: %w", err))
