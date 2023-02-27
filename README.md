@@ -33,6 +33,7 @@ The parameters for connecting to Utopia client are specified according to the ex
 1. sticker filter;
 2. repetitive message filter;
 3. banning a user if he violates too often
+4. no-images filter;
 
 ## useful links
 
