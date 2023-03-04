@@ -43,10 +43,20 @@ func NewUtopiaBot(cfg UBotConfig, db memory.Memory) (Bot, error) {
 		moderatorsPerChannel: make(moderatorsPerChannelData),
 	}
 
-	var err error
+	channels, err := db.GetChannels()
+	if err != nil {
+		return nil, fmt.Errorf("get channels: %w", err)
+	}
+	chats := []uchatbot.Chat{}
+	for _, channelData := range channels {
+		chats = append(chats, uchatbot.Chat{
+			ID: channelData.ID,
+		})
+	}
+
 	b.handler, err = uchatbot.NewChatBot(uchatbot.ChatBotData{
 		Config: cfg.UtopiaConfig,
-		Chats:  []uchatbot.Chat{},
+		Chats:  chats,
 		Callbacks: uchatbot.ChatBotCallbacks{
 			OnContactMessage:        b.onContactMessage,
 			OnChannelMessage:        b.onChannelMessage,
