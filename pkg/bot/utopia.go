@@ -575,7 +575,7 @@ func (b *uBot) onChannelMessage(message structs.WsChannelMessage) {
 			return
 		}
 
-		topicID, err := strconv.ParseInt(message.TopicID, 10, 64)
+		topicID, err := strconv.ParseUint(message.TopicID, 10, 64)
 		if err != nil {
 			b.onError(fmt.Errorf("parse topic ID: %w", err))
 			return
