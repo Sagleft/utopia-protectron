@@ -39,3 +39,6 @@ The parameters for connecting to Utopia client are specified according to the ex
 
 * [Forum thread](https://talk.u.is/viewtopic.php?pid=5269)
 * [uDocs](https://udocs.gitbook.io/utopia-api/)
+
+---
+[![udocs](https://github.com/Sagleft/ures/blob/master/udocs-btn.png?raw=true)](https://udocs.gitbook.io/utopia-api/)
